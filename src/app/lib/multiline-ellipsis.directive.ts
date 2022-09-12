@@ -54,7 +54,7 @@ export class LineClampDirective implements AfterViewInit {
         }
       }
       this.renderer.setStyle(this.element, 'visibility', 'visible');
-    });
+    }, 100); // Add a small delay before clamping the text. This is to give time for Angular initial processes
   }
 
   private textToSpans(): void {
