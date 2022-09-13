@@ -23,7 +23,7 @@ and here's what I achieved:
 <br>
 From the image, the ellipsis was put on the unexpected text ("Material") causing an off whitespace to the interface. The CSS approach seems to be not a cross-browser solution as well.
 <br>
-Furthermore, the resource also suggested alternative Javascript libraries. For me, there's no better way to achieve this but through a custom script. However, I'm not much of a fan of using external libraries, thus this custom Angular Directive was implemented.
+Furthermore, the resource also suggested alternative JavaScript libraries which I think is a better way to achieve this. However, I'm not much of a fan of using external libraries, thus this custom Angular Directive was implemented.
 
 ## Usage
 You can download / fork this repository and copy the contents of `src/app/lib` folder to your application.
@@ -41,8 +41,10 @@ You can download / fork this repository and copy the contents of `src/app/lib` f
 ```html
 <div class="post-wrapper" *ngFor="let post of posts">
   <!-- The class multiline-ellipsis is for fallback purpose only. Can be omitted. -->
-  <h3 class="post-title"><a href="#" appLineClamp class="multiline-ellipsis">{{ post.title }}</a></h3>
-  <div class="post-excerpt"><p appLineClamp class="multiline-ellipsis">{{ post.excerpt }}</p></div>
+  <h3 class="post-title"><a href="#" class="multiline-ellipsis" 
+    appLineClamp [text]="post.title">{{ post.title }}</a></h3>
+  <div class="post-excerpt"><p class="multiline-ellipsis" 
+    appLineClamp [text]="post.excerpt">{{ post.excerpt }}</p></div>
   <span class="post-date">{{ post.date }}</span>
 </div>
 ```
@@ -56,3 +58,7 @@ For demo, you can run this application by executing `ng serve` inside the projec
 - This directive was tested on basic test cases in Chrome, Firefox, and MS Edge.
 - This directive was not tested intensively on other cases (e.g. long whitespaces, other browsers). This directive was only used as a solution for a specific case in one of my projects.
 - I am very open for suggestions!
+
+## Known Issues
+- There are instances when the directive does not seem to work on the very first run or hard page reload. The page needs to be refreshed for the directive to work again.
+I'm suspecting there's a race condition happening but I'll investigate once I got the time.
