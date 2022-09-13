@@ -3,7 +3,7 @@
  * an ellipsis if a text overflows within the specified height
  */
 
- import { AfterViewInit, Directive, ElementRef, Input, Renderer2} from '@angular/core';
+ import { AfterViewInit, Directive, ElementRef, HostListener, Input, Renderer2} from '@angular/core';
 
 @Directive({
   selector: '[appLineClamp]',
@@ -11,7 +11,12 @@
 })
 export class LineClampDirective implements AfterViewInit {
 
+  /** The maximum number of text lines before clamping the overflow */
   @Input() allowedLines = 3;
+
+  /** Variable that stores the value of the original text. This is used for fetching
+   * the correct original text when resizing the window */
+   @Input() text?: string;
 
   private element: HTMLElement;
   private originalText?: string;
@@ -31,30 +36,45 @@ export class LineClampDirective implements AfterViewInit {
 
   ngAfterViewInit(): void {
     setTimeout(() => {
-      if (this.element.textContent) {
-        /** Step 1: Save original text and reset the contents of the element */
-        this.originalText = this.element.textContent;
-        this.element.innerHTML = '';
+      this.clamp();
+    }, 200); // Add a small delay before clamping the text. This is to give time for Angular initial processes
+  }
 
-        /* Step 2: Put each string in the element into individual spans to be
-        able to get the dimension and offsets of each word from the DOM */
-        this.textToSpans();
+  @HostListener('window:resize')
+  onResize(): void {
+    this.reset();
+    this.clamp();
+  }
 
-        /* Step 3: Group the list of span elements by top offsets. This is to know
-        which strings exceed the maximum height (allowedLines) of the container. */
-        this.groupSpanElements();
+  private reset(): void {
+    this.spanElements = [];
+    this.groupedSpanElements = {};
+  }
 
-        /* Step 4: If grouping of offset top is greater than the allowed lines,
-        then an overflow has happened and text will be computed. Otherwise
-        it means there's no overflow and text content is set back to original text */
-        if (Object.keys(this.groupedSpanElements).length > this.allowedLines) {
-          this.setOverflowText();
-        } else {
-          this.element.textContent = this.originalText;
-        }
+  private clamp(): void {
+    if (this.element.textContent) {
+      /** Step 1: Save original text and reset the contents of the element */
+      this.originalText = this.text ?? this.element.textContent;
+      this.element.innerHTML = '';
+
+      /* Step 2: Put each string in the element into individual spans to be
+      able to get the dimension and offsets of each word from the DOM */
+      this.textToSpans();
+
+      /* Step 3: Group the list of span elements by top offsets. This is to know
+      which strings exceed the maximum height (allowedLines) of the container. */
+      this.groupSpanElements();
+
+      /* Step 4: If grouping of offset top is greater than the allowed lines,
+      then an overflow has happened and text will be computed. Otherwise
+      it means there's no overflow and text content is set back to original text */
+      if (Object.keys(this.groupedSpanElements).length > this.allowedLines) {
+        this.setOverflowText();
+      } else {
+        this.element.textContent = this.originalText;
       }
-      this.renderer.setStyle(this.element, 'visibility', 'visible');
-    }, 100); // Add a small delay before clamping the text. This is to give time for Angular initial processes
+    }
+    this.renderer.setStyle(this.element, 'visibility', 'visible');
   }
 
   private textToSpans(): void {
@@ -157,12 +177,17 @@ export class LineClampDirective implements AfterViewInit {
           };
           return span.element.textContent;
         }).join('');
-      this.element.innerHTML = spansText + overflowText + '...';
+      
+      if (!this.isTextWhiteSpace(overflowText)) {
+        this.element.innerHTML = spansText.trim() + ' ' + overflowText + '...';
+      } else {
+        this.element.innerHTML = spansText.trim() + '...';
+      }
     }
   }
 
   private isTextWhiteSpace(text: string): boolean {
-    return /\s/g.test(text);
+    return /\s/g.test(text) || !text.trim();
   }
 }
 

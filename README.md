@@ -2,7 +2,7 @@
 This is a custom directive for adding an ellipsis when a multiline text exceeded the height of its container (overflow).
 <br>
 ## Example
-<img src="screenshots/example.jpg"  width="700">
+<img src="screenshots/example.gif"  width="700">
 
 <br>
 

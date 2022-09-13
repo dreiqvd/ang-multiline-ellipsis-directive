@@ -1,9 +1,11 @@
 <section>
   <div class="posts-container">
-    <div class="post-wrapper" *ngFor="let post of posts">
+    <div class="post-wrapper" *ngFor="let post of posts" [ngStyle]="{ width: (100 / posts.length) + '%' }">
       <!-- The class multiline-ellipsis is for fallback purpose only. Can be omitted. -->
-      <h3 class="post-title"><a href="#" appLineClamp class="multiline-ellipsis">{{ post.title }}</a></h3>
-      <div class="post-excerpt"><p appLineClamp class="multiline-ellipsis">{{ post.excerpt }}</p></div>
+      <h3 class="post-title"><a href="#" class="multiline-ellipsis" 
+        appLineClamp [text]="post.title">{{ post.title }}</a></h3>
+      <div class="post-excerpt"><p class="multiline-ellipsis" 
+        appLineClamp [text]="post.excerpt">{{ post.excerpt }}</p></div>
       <span class="post-date">{{ post.date }}</span>
     </div>
   </div>
