@@ -3,13 +3,14 @@
  * an ellipsis if a text overflows within the specified height
  */
 
- import { AfterViewInit, Directive, ElementRef, HostListener, Input, Renderer2} from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, Input, OnDestroy, Renderer2} from '@angular/core';
+import { fromEvent, Subject, takeUntil } from 'rxjs';
 
 @Directive({
   selector: '[appLineClamp]',
   exportAs: 'appLineClamp'
 })
-export class LineClampDirective implements AfterViewInit {
+export class LineClampDirective implements AfterViewInit, OnDestroy {
 
   /** The maximum number of text lines before clamping the overflow */
   @Input() allowedLines = 3;
@@ -18,6 +19,7 @@ export class LineClampDirective implements AfterViewInit {
    * the correct original text when resizing the window */
    @Input() text?: string;
 
+  private $destroy = new Subject<void>();
   private element: HTMLElement;
   private originalText?: string;
   private spanElements: SpanElement[] = [];
@@ -38,12 +40,18 @@ export class LineClampDirective implements AfterViewInit {
     setTimeout(() => {
       this.clamp();
     }, 200); // Add a small delay before clamping the text. This is to give time for Angular initial processes
+
+    fromEvent(window, 'resize').pipe(
+      takeUntil(this.$destroy)
+    ).subscribe(() => {
+      this.reset();
+      this.clamp();
+    });
   }
 
-  @HostListener('window:resize')
-  onResize(): void {
-    this.reset();
-    this.clamp();
+  ngOnDestroy(): void {
+    this.$destroy.next();
+    this.$destroy.complete();
   }
 
   private reset(): void {
